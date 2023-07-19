@@ -47,6 +47,8 @@ public class DenjiController : MonoBehaviour
         animatorController.SetFloat("VelocityZ", velocityZ);
         animatorController.SetFloat("VelocityX", velocityX);
 
+        // This controls lateral movement
+        // TODO: Add turning relative to camera position
         transform.position += new Vector3(velocityX, 0, velocityZ) * movementSpeedFactor;
 
     }
