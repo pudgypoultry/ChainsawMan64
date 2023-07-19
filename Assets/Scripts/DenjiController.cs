@@ -12,6 +12,7 @@ public class DenjiController : MonoBehaviour
     public float deceleration = 2.0f;
     public float maxWalkVelocity = 0.5f;
     public float maxRunVelocity = 2.0f;
+    public float movementSpeedFactor = 0.05f;
 
     int isWalkingHash;
 
@@ -45,6 +46,8 @@ public class DenjiController : MonoBehaviour
 
         animatorController.SetFloat("VelocityZ", velocityZ);
         animatorController.SetFloat("VelocityX", velocityX);
+
+        transform.position += new Vector3(velocityX, 0, velocityZ) * movementSpeedFactor;
 
     }
 
