@@ -9,12 +9,18 @@ public class DenjiController : MonoBehaviour
     float velocityZ = 0.0f;
     float velocityX = 0.0f;
     public float acceleration = 2.0f;
-    public float deceleration = 2.0f;
+    public float deceleration = 2.5f;
     public float maxWalkVelocity = 0.5f;
     public float maxRunVelocity = 2.0f;
     public float movementSpeedFactor = 0.05f;
+    public float rotationSpeedFactor = 4.0f;
 
     int isWalkingHash;
+
+    private void Awake()
+    {
+        Cursor.lockState = CursorLockMode.Locked;
+    }
 
     // Start is called before the first frame update
     void Start()
@@ -30,6 +36,7 @@ public class DenjiController : MonoBehaviour
         // input will be true if the player is pressing on the passed in key parameter
         // get key input from player
         bool forwardPressed = Input.GetKey("w");
+        bool backPressed = Input.GetKey("s");
         bool leftPressed = Input.GetKey("a");
         bool rightPressed = Input.GetKey("d");
         bool runPressed = Input.GetKey("left shift");
@@ -38,9 +45,9 @@ public class DenjiController : MonoBehaviour
         // set current maxVelocity
         float currentMaxVelocity = runPressed ? maxRunVelocity : maxWalkVelocity;
 
-        changeVelocity(forwardPressed, leftPressed, rightPressed, runPressed, currentMaxVelocity);
+        changeVelocity(forwardPressed, backPressed, leftPressed, rightPressed, runPressed, currentMaxVelocity);
 
-        lockOrResetVelocity(forwardPressed, leftPressed, rightPressed, runPressed, currentMaxVelocity);
+        lockOrResetVelocity(forwardPressed, backPressed, leftPressed, rightPressed, runPressed, currentMaxVelocity);
 
         handleAttacking(attackPressed);
 
@@ -49,11 +56,13 @@ public class DenjiController : MonoBehaviour
 
         // This controls lateral movement
         // TODO: Add turning relative to camera position
-        transform.position += new Vector3(velocityX, 0, velocityZ) * movementSpeedFactor;
+        transform.position += transform.forward * velocityZ * movementSpeedFactor;
+        transform.position += transform.right * velocityX * movementSpeedFactor;
 
+        transform.Rotate(0, Input.GetAxis("Mouse X"), 0);
     }
 
-    void changeVelocity(bool forwardPressed, bool leftPressed, bool rightPressed, bool runPressed, float currentMaxVelocity)
+    void changeVelocity(bool forwardPressed, bool backPressed, bool leftPressed, bool rightPressed, bool runPressed, float currentMaxVelocity)
     {
         if (forwardPressed && velocityZ < currentMaxVelocity)
         {
@@ -62,7 +71,12 @@ public class DenjiController : MonoBehaviour
 
         if (!forwardPressed && velocityZ > 0.0f)
         {
-            velocityZ -= Time.deltaTime * deceleration;
+            velocityZ -= Time.deltaTime * deceleration / 2;
+        }
+
+        if (backPressed && velocityZ > -currentMaxVelocity)
+        {
+            velocityZ -= Time.deltaTime * acceleration;
         }
 
         if (leftPressed && velocityX > -currentMaxVelocity)
@@ -76,10 +90,15 @@ public class DenjiController : MonoBehaviour
         }
 
         // reset velocityZ
-        if (!forwardPressed && velocityZ < 0.0f)
+        if (!forwardPressed && !backPressed && velocityZ != 0.0f && (velocityZ > -0.0f && velocityZ < 0.05f))
         {
             velocityZ = 0.0f;
         }
+
+        if (!backPressed && velocityZ < 0.0f)
+        {
+            velocityZ += Time.deltaTime * deceleration;
+        }    
 
         // reset velocityX
         if (!leftPressed && velocityX < 0.0f)
@@ -98,7 +117,7 @@ public class DenjiController : MonoBehaviour
         }
     }
 
-    void lockOrResetVelocity(bool forwardPressed, bool leftPressed, bool rightPressed, bool runPressed, float currentMaxVelocity)
+    void lockOrResetVelocity(bool forwardPressed, bool backPressed, bool leftPressed, bool rightPressed, bool runPressed, float currentMaxVelocity)
     {
         // lock forward
         if (forwardPressed && runPressed && velocityZ > currentMaxVelocity)
